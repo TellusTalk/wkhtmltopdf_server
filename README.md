@@ -7,4 +7,4 @@
 2) Change the variables declared at the top of the file with your values.
 
 3) From the command line start the proxy as:
-    $ wkhtmltopdf_server.js
+    $ node wkhtmltopdf_server.js

@@ -1,12 +1,10 @@
 var
     PASSPHRASE = 'Some Secret!',
-    HTTP_PORT = 7201,
-    WORK_DIRECTORY_PATH = '/path/work/';
+    HTTP_PORT = 7201;
 
 var
-    http = require('http'),
-    fs = require('fs'),
-    execFile = require('child_process').execFile;
+    http = require('http');
+    //child_process = require('child_process');
 
 function app_log(text_in) {
     'use strict';
@@ -18,10 +16,9 @@ function html_request(request, response) {
     'use strict';
     var
         unique_id = new Date().toISOString() + '_' + Math.floor(Math.random() * 1000),
-        source_file = WORK_DIRECTORY_PATH + unique_id + '.html',
-        target_file = WORK_DIRECTORY_PATH + unique_id + '.pdf',
-        wkhtmltopdf_options = request.headers.wkhtmltopdf_options ? request.headers.wkhtmltopdf_options.split(' ') : [],
-        write_stream;
+        wkhtmltopdf_options = request.headers.wkhtmltopdf_options ? request.headers.wkhtmltopdf_options.split(' ') : ['--quiet'],
+        spawn_wkhtmltopdf,
+        response_header = {};
 
     if (request.url === '/favicon.ico') {
         response.writeHead(200, {'Content-Type': 'image/x-icon', 'Cache-Control': 'max-age=360000, must-revalidate'});
@@ -44,43 +41,22 @@ function html_request(request, response) {
             app_log('[createServer request] ' + unique_id + ': passphrase invalid');
             return;
         }
-        write_stream = fs.createWriteStream(source_file);
-
-        request.pipe(write_stream);
-
-        write_stream.on("close", function () {
-            function pdf_response(error, stdout, stderr) {
-                var
-                    response_header = {},
-                    read_stream;
-
-                if (error === null) {
-                    response_header['Content-Type'] = 'application/pdf';
-                    response.writeHead(200, response_header);
-
-                    read_stream = fs.createReadStream(target_file);
-
-                    read_stream.on("close", function () {
-                        fs.unlink(source_file);
-                        fs.unlink(target_file);
-                    });
-
-                    read_stream.pipe(response);
-
-                } else {
-                    response_header['Content-Type'] = 'text/plain';
-                    response.writeHead(500, response_header);
-                    response.end();
-
-                    app_log('[execFile error] ' + unique_id + ': error obj: ' + JSON.stringify(error));
-                    app_log('[execFile error] ' + unique_id + ': error text: ' + error);
-                    app_log('[execFile error] ' + unique_id + ': stderr: ' + stderr);
-                    app_log('[execFile error] ' + unique_id + ': stdout: ' + stdout);
-                }
-            }
-
-            execFile('wkhtmltopdf', wkhtmltopdf_options.concat([source_file, target_file]), {timeout: 20000}, pdf_response);
-        });
+        try {
+	        //spawn = child_process.spawn;
+	        spawn_wkhtmltopdf = require('child_process').spawn('/bin/sh', ['-c', 'wkhtmltopdf ' + wkhtmltopdf_options + ' - - | cat']);
+	
+	        request.pipe(spawn_wkhtmltopdf.stdin);
+	        response_header['Content-Type'] = 'application/pdf';
+	        response.writeHead(200, response_header);
+	        spawn_wkhtmltopdf.stdout.pipe(response);
+	    } catch (err) {
+	        response.writeHead(400, {'Content-Type': 'text/plain'});
+	        response.write(err.message);
+	        response.write('\n----------------------------\n');
+	        response.write(err.stack);
+	        response.end();
+	        return;
+	    }
     }
 }
 

@@ -4,7 +4,6 @@ var
 
 var
     http = require('http');
-    //child_process = require('child_process');
 
 function app_log(text_in) {
     'use strict';
@@ -17,8 +16,7 @@ function html_request(request, response) {
     var
         unique_id = new Date().toISOString() + '_' + Math.floor(Math.random() * 1000),
         wkhtmltopdf_options = request.headers.wkhtmltopdf_options ? request.headers.wkhtmltopdf_options.split(' ') : ['--quiet'],
-        spawn_wkhtmltopdf,
-        response_header = {};
+        spawn_wkhtmltopdf;
 
     if (request.url === '/favicon.ico') {
         response.writeHead(200, {'Content-Type': 'image/x-icon', 'Cache-Control': 'max-age=360000, must-revalidate'});
@@ -42,12 +40,10 @@ function html_request(request, response) {
             return;
         }
         try {
-	        //spawn = child_process.spawn;
 	        spawn_wkhtmltopdf = require('child_process').spawn('/bin/sh', ['-c', 'wkhtmltopdf ' + wkhtmltopdf_options + ' - - | cat']);
 	
 	        request.pipe(spawn_wkhtmltopdf.stdin);
-	        response_header['Content-Type'] = 'application/pdf';
-	        response.writeHead(200, response_header);
+	        response.writeHead(200, {'Content-Type': 'application/pdf'});
 	        spawn_wkhtmltopdf.stdout.pipe(response);
 	    } catch (err) {
 	        response.writeHead(400, {'Content-Type': 'text/plain'});

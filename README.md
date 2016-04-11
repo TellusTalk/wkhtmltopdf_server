@@ -21,7 +21,8 @@ Try this first
     
         $ sudo apt-get -f install
 Or install the missing dependencies manually
-    dpkg: dependency problems prevent configuration of wkhtmltox:
+dpkg: dependency problems prevent configuration of wkhtmltox:
+
      wkhtmltox depends on fontconfig; however:
       Package fontconfig is not installed.
      wkhtmltox depends on libjpeg-turbo8; however:
@@ -31,7 +32,8 @@ Or install the missing dependencies manually
      wkhtmltox depends on xfonts-75dpi; however:
       Package xfonts-75dpi is not installed.
 
-    From above you can install each dependency yourself
+From above you can install each dependency yourself
+
     $ sudo apt-get install fontconfig
     $ sudo apt-get install libjpeg-turbo8
     $ sudo apt-get install xfonts-base

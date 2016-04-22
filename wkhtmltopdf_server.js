@@ -15,7 +15,7 @@ function html_request(request, response) {
     'use strict';
     var
         unique_id = new Date().toISOString() + '_' + Math.floor(Math.random() * 1000),
-        wkhtmltopdf_options = request.headers.wkhtmltopdf_options ? request.headers.wkhtmltopdf_options.split(' ') : ['--quiet'],
+        wkhtmltopdf_options = request.headers.wkhtmltopdf_options ? request.headers.wkhtmltopdf_options : '--quiet',
         spawn_wkhtmltopdf;
 
     if (request.url === '/favicon.ico') {
